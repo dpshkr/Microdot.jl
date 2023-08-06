@@ -1,4 +1,7 @@
+module microdot
 using Sockets
+
+export Microdot, run, route, get, post, patch, delete, HTMLResponse, TextResponse
 
 function urldecode(s)
     s = replace(s, "+" => " ")
@@ -147,8 +150,8 @@ struct Microdot
     end
 end
 
-function run(app::Microdot)
-    server = listen(2000) 
+function run(app::Microdot, port::Int)
+    server = listen(port) 
     while true
         sock = accept(server)
         (method, url, protocol) = split(readline(sock), " ")
@@ -217,17 +220,20 @@ function route(app::Microdot, path, handler, methods)
     push!(app.routes, Route(path, handler, methods))
 end
 
-
-function index(req::Request)
-    return HTMLResponse("<p>Hello World</p>")
+function get(app::Microdot, path, handler)
+    push!(app.routes, Route(path, handler, ["GET"]))
 end
 
-function hello(req::Request, name)
-    return TextResponse("<p>Hello $(name)</p>")
+function post(app::Microdot, path, handler)
+    push!(app.routes, Route(path, handler, ["POST"]))
 end
 
+function delete(app::Microdot, path, handler)
+    push!(app.routes, Route(path, handler, ["DELETE"]))
+end
 
-app = Microdot()
-route(app, "/", index, ["GET"])
-route(app, "/hello/<user>", hello, ["GET"])
-run(app)
+function delete(app::Microdot, path, handler)
+    push!(app.routes, Route(path, handler, ["PATCH"]))
+end
+
+end
